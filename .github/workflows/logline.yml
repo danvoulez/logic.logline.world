@@ -1,0 +1,57 @@
+name: LogLine CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            logline/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('logline/Cargo.lock') }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install npm deps
+        run: npm ci
+
+      - name: Install logline CLI
+        run: cargo install --path logline/crates/logline-cli
+
+      - name: Run pipeline
+        env:
+          LOGLINE_SESSION_TOKEN: ${{ secrets.LOGLINE_SESSION_TOKEN }}
+          LOGLINE_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LOGLINE_VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          LOGLINE_SUPABASE_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          LOGLINE_DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          LOGLINE_DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: logline cicd run --pipeline prod --non-interactive
+
+      - name: Upload receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-receipt
+          path: receipt.json
+          if-no-files-found: ignore

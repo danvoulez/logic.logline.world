@@ -1,0 +1,20 @@
+{
+  "pipelines": {
+    "prod": [
+      {"step": "check",      "run": "cargo check --workspace --manifest-path logline/Cargo.toml"},
+      {"step": "test",       "run": "cargo test --workspace --manifest-path logline/Cargo.toml"},
+      {"step": "lint",       "run": "npm run lint"},
+      {"step": "db_migrate", "cmd": "db migrate up --env prod"},
+      {"step": "db_gate",    "cmd": "db verify-rls --env prod"},
+      {"step": "deploy",     "cmd": "deploy all --env prod"}
+    ],
+    "staging": [
+      {"step": "check",      "run": "cargo check --workspace --manifest-path logline/Cargo.toml"},
+      {"step": "db_migrate", "cmd": "db migrate up --env staging"},
+      {"step": "db_gate",    "cmd": "db verify-rls --env staging"},
+      {"step": "deploy",     "cmd": "deploy all --env staging"}
+    ]
+  },
+  "on_failure": "abort",
+  "artifacts": ["receipt.json"]
+}

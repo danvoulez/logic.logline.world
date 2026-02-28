@@ -1,0 +1,28 @@
+[package]
+name = "logline-auth"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[features]
+default = ["fetch-reqwest", "cache"]
+fetch-reqwest = ["dep:reqwest"]
+cache = ["dep:dashmap", "dep:once_cell"]
+
+[dependencies]
+base64 = { version = "0.22", default-features = false, features = ["std"] }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+jsonwebtoken = { version = "10", default-features = false, features = ["rust_crypto"] }
+httpdate = "1"
+reqwest = { version = "0.12", optional = true, default-features = false, features = ["json", "rustls-tls"] }
+once_cell = { version = "1", optional = true }
+dashmap = { version = "6", optional = true }
+
+[dev-dependencies]
+serde_json.workspace = true

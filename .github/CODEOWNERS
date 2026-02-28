@@ -1,0 +1,18 @@
+# CODEOWNERS — Dan must approve changes to critical paths.
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# CI/CD pipeline definition
+/logline.cicd.json              @ubl-ops
+
+# GitHub Actions workflows
+/.github/workflows/             @ubl-ops
+
+# Database migrations (schema changes require human review)
+/supabase/migrations/           @ubl-ops
+
+# Logline CLI (the single powerful binary)
+/logline/                       @ubl-ops
+
+# Security-critical files
+/.github/CODEOWNERS             @ubl-ops
+/.env*                          @ubl-ops

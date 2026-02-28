@@ -1,0 +1,44 @@
+# Backend definitions and profile routing
+version = 1
+
+[profiles.local]
+backend = "local-main"
+readonly = false
+
+[profiles.staging]
+backend = "staging-api"
+readonly = false
+
+[profiles.prod]
+backend = "prod-api"
+readonly = true
+
+[backends.local-main]
+base_url = "http://127.0.0.1:8787"
+auth_mode = "api_key"   # api_key | bearer | mtls
+secret_ref = "keychain://logline/local-main"
+connect_timeout_ms = 2000
+request_timeout_ms = 10000
+supports_streaming = true
+supports_write = true
+supports_history = true
+
+[backends.staging-api]
+base_url = "https://staging.example.com"
+auth_mode = "bearer"
+secret_ref = "keychain://logline/staging"
+connect_timeout_ms = 3000
+request_timeout_ms = 15000
+supports_streaming = true
+supports_write = true
+supports_history = true
+
+[backends.prod-api]
+base_url = "https://api.example.com"
+auth_mode = "bearer"
+secret_ref = "keychain://logline/prod"
+connect_timeout_ms = 3000
+request_timeout_ms = 15000
+supports_streaming = true
+supports_write = true
+supports_history = true

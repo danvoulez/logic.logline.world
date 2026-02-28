@@ -1,0 +1,16 @@
+# UI-only preferences (must not contain business logic)
+version = 1
+
+[ui]
+default_view = "status"      # status | events | runs
+refresh_ms = 3000
+compact_mode = true
+
+[ui.mobile]
+enabled = true
+readonly_default = true
+
+[ui.notifications]
+enabled = true
+on_run_failure = true
+on_backend_disconnect = true

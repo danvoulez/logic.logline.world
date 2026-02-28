@@ -1,0 +1,30 @@
+[workspace]
+members = [
+  "crates/logline-auth",
+  "crates/logline-api",
+  "crates/logline-core",
+  "crates/logline-connectors",
+  "crates/logline-runtime",
+  "crates/logline-cli",
+]
+resolver = "2"
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.85"
+license = "MIT"
+version = "0.1.0"
+
+[workspace.dependencies]
+anyhow = "1.0"
+clap = { version = "4.5", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "2.0"
+
+[workspace.lints.rust]
+unsafe_code = "warn"
+
+[workspace.lints.clippy]
+all = "warn"
+pedantic = "warn"

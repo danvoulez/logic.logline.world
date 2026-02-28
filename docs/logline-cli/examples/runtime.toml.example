@@ -1,0 +1,24 @@
+# Runtime policy and execution behavior
+version = 1
+active_profile = "local"
+
+[runtime]
+max_concurrent_runs = 4
+default_queue_capacity = 200
+stop_grace_seconds = 15
+persist_events = true
+
+[runtime.retry]
+max_attempts = 3
+base_delay_ms = 400
+max_delay_ms = 8000
+jitter = true
+
+[runtime.audit]
+enabled = true
+sink = "local"          # local | remote
+retention_days = 30
+
+[runtime.output]
+default_format = "table" # table | json
+color = "auto"           # auto | always | never

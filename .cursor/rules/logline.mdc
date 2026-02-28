@@ -1,0 +1,55 @@
+---
+description: Security and architecture rules for the UBLX/LogLine ecosystem
+globs:
+alwaysApply: true
+---
+
+# LogLine Ecosystem Rules
+
+## Read First
+
+Before working on this codebase, read `docs/LLM_START_HERE.md`. It is the normative guide.
+
+## Security Rules (MANDATORY)
+
+1. **NEVER create `.env` files with secrets** — no `DATABASE_URL`, no `SERVICE_ROLE_KEY`, no API tokens. The `.env` file contains ONLY public values (anon key, URLs).
+
+2. **NEVER hardcode connection strings, tokens, or passwords** in any file. All secrets live in macOS Keychain, managed by `logline secrets set <key>`.
+
+3. **NEVER attempt direct database connections** — no `psql postgresql://...`, no direct Supabase client initialization with service role keys.
+
+4. **NEVER create daemon processes or separate backend services** — the `logline` CLI is the only binary. There is no daemon.
+
+5. **NEVER bypass the CLI for infrastructure operations** — when you need to query the database, deploy, or run migrations, ask the human to use CLI commands.
+
+## Architecture Rules
+
+1. **CLI is the ecosystem** — `logline` CLI in `logline/crates/logline-cli/` is the single point of access for all operations.
+
+2. **Supabase is the sole infrastructure** — one project, one database, one auth system. No separate databases, no alternative auth providers.
+
+3. **Migrations require review** — create `.sql` files in `supabase/migrations/`, then ask the human to run `logline db migrate review` followed by `logline db migrate apply`.
+
+4. **CI/CD is separated from migrations** — `logline cicd run` blocks if migrations are pending.
+
+5. **UI is observability** — the Next.js app in `app/` is a dashboard. It cannot modify infrastructure.
+
+## When You Need Infrastructure Access
+
+Ask the human to run:
+
+```bash
+logline auth unlock                  # Touch ID session
+logline db query "SELECT ..."        # Query data
+logline db migrate review            # Review pending migrations
+logline db migrate apply --env prod  # Apply migrations
+logline deploy all --env prod        # Deploy everything
+logline secrets doctor               # Check system health
+```
+
+## Rust Development
+
+- Workspace: `logline/`
+- Always run `cargo check` after editing Rust code
+- The only crate that produces a binary is `logline-cli`
+- Helper crates: `logline-api`, `logline-auth`, `logline-core`, `logline-connectors`, `logline-runtime`
