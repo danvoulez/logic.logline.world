@@ -1,0 +1,54 @@
+{
+    "genesis": {
+        "protocol": "logline",
+        "version": "0.1.0",
+        "record_number": 0,
+        "created_at": "2026-02-28T20:30:00Z",
+        "message": "In the beginning there was a command line."
+    },
+    "founder": {
+        "name": "Dan Voulez",
+        "email": "dan@danvoulez.com",
+        "user_id": "ce3df1d9-5f20-4387-9b08-747abbd5a0b9",
+        "auth_method": "passkey",
+        "device": "LAB 256",
+        "public_key": "c821d0464ca0053db859e089577d87d2061e4cafdc2dcc336416539733cc4dd4",
+        "role": "founder",
+        "session": "s_a5f4d43e"
+    },
+    "tenant": {
+        "slug": "voulezvous",
+        "name": "VoulezVous"
+    },
+    "hq_app": {
+        "app_id": "ublx",
+        "name": "UBLX Headquarters"
+    },
+    "machine": {
+        "computer_name": "LAB 256",
+        "hostname": "LAB-256",
+        "os": "macOS 26.2",
+        "os_build": "25C56",
+        "architecture": "arm64",
+        "chip": "Apple M1",
+        "memory_gb": 16,
+        "uptime_at_genesis": "11 days"
+    },
+    "toolchain": {
+        "rust": "1.92.0 (ded5c06cf 2025-12-08)",
+        "git_commit": "ac138c0"
+    },
+    "repositories": {
+        "logic": "github.com/danvoulez/logic.logline.world",
+        "obs_api": "github.com/danvoulez/obs-api.logline.world",
+        "archive": "github.com/danvoulez/LogLine-CLI-UI"
+    },
+    "oath": "One binary. No secrets on disk. Touch ID or nothing. The CLI is the ecosystem.",
+    "scars": [
+        "Config path: ~/.config vs ~/Library/Application Support",
+        "Keychain: unsigned binary silent fail \u2192 file fallback with 0600",
+        "RLS: cli_passkey_credentials had no insert policy \u2192 auth.uid()::text",
+        "Subcommands: passkey-register, not passkey register",
+        "Three attempts to run genesis before it stuck"
+    ]
+}

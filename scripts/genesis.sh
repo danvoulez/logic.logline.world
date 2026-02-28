@@ -129,7 +129,7 @@ echo ""
 # ── Step 4: Register passkey ─────────────────────────────────────────────
 
 echo -e "${YELLOW}Step 4${RESET} — Registering passkey (Touch ID)"
-$CLI auth passkey register --device-name "$COMPUTER_NAME"
+$CLI auth passkey-register --device-name "$COMPUTER_NAME"
 echo -e "  ${GREEN}✓${RESET} Passkey registered"
 echo ""
 

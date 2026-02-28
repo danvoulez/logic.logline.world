@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use anyhow::{bail, Context};
@@ -81,25 +81,56 @@ const KEYRING_SERVICE: &str = "logline-cli";
 const KEYRING_AUTH_USER: &str = "auth_tokens";
 const KEYRING_PASSKEY_USER: &str = "passkey_ed25519";
 
+fn write_private_file(path: &Path, contents: &str) -> anyhow::Result<()> {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::OpenOptionsExt;
+        let mut f = fs::OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .mode(0o600)
+            .open(path)?;
+        std::io::Write::write_all(&mut f, contents.as_bytes())?;
+    }
+    #[cfg(not(unix))]
+    fs::write(path, contents)?;
+    Ok(())
+}
+
 pub fn load_auth() -> Option<StoredAuth> {
-    let entry = keyring::Entry::new(KEYRING_SERVICE, KEYRING_AUTH_USER).ok()?;
-    let json = entry.get_password().ok()?;
-    serde_json::from_str(&json).ok()
+    // Try Keychain first
+    if let Some(json) = keyring::Entry::new(KEYRING_SERVICE, KEYRING_AUTH_USER)
+        .ok()
+        .and_then(|e| e.get_password().ok())
+    {
+        return serde_json::from_str(&json).ok();
+    }
+    // Fall back to protected config directory
+    let path = auth_path();
+    let content = fs::read_to_string(&path).ok()?;
+    serde_json::from_str(&content).ok()
 }
 
 pub fn save_auth(auth: &StoredAuth) -> anyhow::Result<()> {
     let json = serde_json::to_string(auth)?;
-    let entry = keyring::Entry::new(KEYRING_SERVICE, KEYRING_AUTH_USER)
-        .map_err(|e| anyhow::anyhow!("Keychain error: {e}"))?;
-    entry
-        .set_password(&json)
-        .map_err(|e| anyhow::anyhow!("Failed to store auth in keychain: {e}"))?;
 
-    // Clean up any legacy file-based auth
-    let path = auth_path();
-    if path.exists() {
-        let _ = fs::remove_file(path);
+    // Try Keychain (may silently fail on unsigned binaries)
+    let keychain_ok = keyring::Entry::new(KEYRING_SERVICE, KEYRING_AUTH_USER)
+        .ok()
+        .and_then(|e| e.set_password(&json).ok())
+        .is_some();
+
+    // Always write to protected config dir as reliable storage
+    let dir = config_dir();
+    fs::create_dir_all(&dir)?;
+    let path = dir.join("auth.json");
+    write_private_file(&path, &json)?;
+
+    if !keychain_ok {
+        eprintln!("Note: Keychain unavailable, auth stored in {}", path.display());
     }
+
     Ok(())
 }
 
@@ -123,24 +154,30 @@ pub fn delete_auth() -> anyhow::Result<()> {
 }
 
 pub fn load_passkey() -> Option<serde_json::Value> {
-    let entry = keyring::Entry::new(KEYRING_SERVICE, KEYRING_PASSKEY_USER).ok()?;
-    let json = entry.get_password().ok()?;
-    serde_json::from_str(&json).ok()
+    if let Some(json) = keyring::Entry::new(KEYRING_SERVICE, KEYRING_PASSKEY_USER)
+        .ok()
+        .and_then(|e| e.get_password().ok())
+    {
+        return serde_json::from_str(&json).ok();
+    }
+    let path = config_dir().join("passkey.json");
+    let content = fs::read_to_string(&path).ok()?;
+    serde_json::from_str(&content).ok()
 }
 
 pub fn save_passkey(data: &serde_json::Value) -> anyhow::Result<()> {
     let json = serde_json::to_string(data)?;
-    let entry = keyring::Entry::new(KEYRING_SERVICE, KEYRING_PASSKEY_USER)
-        .map_err(|e| anyhow::anyhow!("Keychain error: {e}"))?;
-    entry
-        .set_password(&json)
-        .map_err(|e| anyhow::anyhow!("Failed to store passkey in keychain: {e}"))?;
 
-    // Clean up any legacy file-based passkey
-    let path = config_dir().join("passkey.json");
-    if path.exists() {
-        let _ = fs::remove_file(path);
-    }
+    let _keychain_ok = keyring::Entry::new(KEYRING_SERVICE, KEYRING_PASSKEY_USER)
+        .ok()
+        .and_then(|e| e.set_password(&json).ok())
+        .is_some();
+
+    let dir = config_dir();
+    fs::create_dir_all(&dir)?;
+    let path = dir.join("passkey.json");
+    write_private_file(&path, &json)?;
+
     Ok(())
 }
 
